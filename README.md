@@ -5,6 +5,7 @@
 ターミナル上で以下のコマンドを実行
 ```
 cd ./src
-poetry run python manage.py runserver 0:8000
+poetry run python manage.py runserver
 ```
+その後, `Starting development server at http://xxx.xxx.xxx.xxx:yyyy/`と表示されるので, `http://xxx.xxx.xxx.xxx:yyyy/sounds` を表示する.
 
