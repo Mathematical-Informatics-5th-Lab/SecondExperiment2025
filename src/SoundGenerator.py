@@ -143,7 +143,6 @@ class RandomSoundGen():
             'SineGen',
         ]
         self.sound_name = random.choice(sound_gen_list)
-        # choice self.sound_gen with switch case
         if self.sound_name == 'PulseGen':
             self.sound_gen = PulseGen()
         elif self.sound_name == 'SineGen':
