@@ -294,13 +294,6 @@ typedef enum _eLeapConnectionConfig {
    * @since 4.1.0
    */
   eLeapConnectionConfig_MultiDeviceAware = 0x00000001,
-
-  /**
-   * The client wants to enable fiducial marker tracking for the devices it
-   * subscribes to.
-   * @since 6.1.0
-   */
-  eLeapConnectionConfig_FiducialTracking = 0x00000002,
 } eLeapConnectionConfig;
 LEAP_STATIC_ASSERT(sizeof(eLeapConnectionConfig) == 4, "Incorrect enum size");
 
@@ -1054,8 +1047,8 @@ typedef struct _LEAP_DEVICE_INFO {
   /**
    * The device baseline, in micrometers.
    *
-   * The baseline is defined as the distance in micrometers between the center axis of each lens in a
-   * stereo camera system. For other camera systems, this value is set to zero.
+   * The baseline is defined as the distance between the center axis of each lens in a stereo camera
+   * system. For other camera systems, this value is set to zero.
    * @since 3.0.0
    */
   uint32_t baseline;
@@ -1149,13 +1142,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapReleaseServerStatus(const LEAP_SERVER_STATUS* 
 /** \ingroup Functions
  * Gets device properties.
  *
- * When calling LeapGetDeviceInfo the caller must populate the following LEAP_DEVICE_INFO
- * fields:
- *
- * - size: equal to sizeof(LEAP_DEVICE_INFO)
- * - serial_length: see below
- * - serial: see below
- *
+ * To get the device serial number, you must supply a LEAP_DEVICE_INFO struct whose
  * serial member points to a char array large enough to hold the null-terminated
  * serial number string. To get the required length, call LeapGetDeviceInfo() using
  * a LEAP_DEVICE_INFO struct that has serial set to NULL. LeapC sets serial_length field of
@@ -1163,7 +1150,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapReleaseServerStatus(const LEAP_SERVER_STATUS* 
  * set the serial field, and call this function again.
  *
  * @param hDevice A handle to the device to be queried.
- * @param[update] info The struct to receive the device property data.
+ * @param[out] info The struct to receive the device property data.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
  */
@@ -1630,7 +1617,7 @@ typedef struct _LEAP_PALM {
   LEAP_VECTOR normal;
 
   /**
-   * The estimated width of the palm in millimeters when the hand is in a flat position.
+   * The estimated width of the palm when the hand is in a flat position.
    * @since 3.0.0
    */
   float width;
@@ -1698,14 +1685,12 @@ typedef struct _LEAP_HAND {
   uint64_t visible_time;
 
   /**
-   * The distance between index finger and thumb in millimeters.
-   * @since 3.0.0
+   * The distance between index finger and thumb. @since 3.0.0
    */
   float pinch_distance;
 
   /**
-   * The average angle of fingers to palm in radians.
-   * @since 3.0.0
+   * The average angle of fingers to palm. @since 3.0.0
    */
   float grab_angle;
 
@@ -1944,27 +1929,16 @@ typedef struct _LEAP_HEAD_POSE_EVENT {
   */
   int64_t timestamp;
   /**
-  * The position of the user's head in millimeters. Positional tracking must be enabled.
+  * The position and orientation of the user's head. Positional tracking must be enabled.
   * @since 4.1.0
   */
   LEAP_VECTOR head_position;
-
-  /**
-  * The orientation of the user's head in radians. Positional tracking must be enabled.
-  * @since 4.1.0
-  */
   LEAP_QUATERNION head_orientation;
-
   /**
-  * The linear velocity of the user's head in millimeters per second. Positional tracking must be enabled.
+  * The linear and angular velocity of the user's head. Positional tracking must be enabled.
   * @since 4.1.0
   */
   LEAP_VECTOR head_linear_velocity;
-
-  /**
-  * The angular velocity of the user's head in radians per second. Positional tracking must be enabled.
-  * @since 4.1.0
-  */
   LEAP_VECTOR head_angular_velocity;
 } LEAP_HEAD_POSE_EVENT;
 
@@ -1985,13 +1959,13 @@ typedef struct _LEAP_EYE_EVENT {
   int64_t timestamp;
 
   /**
-  * The position of the user's left eye in millimeters.
+  * The position of the user's left eye.
   * @since 4.1.0
   */
   LEAP_VECTOR left_eye_position;
 
   /**
-  * The position of the user's right eye in millimeters.
+  * The position of the user's right eye.
   * @since 4.1.0
   */
   LEAP_VECTOR right_eye_position;
@@ -2108,7 +2082,7 @@ typedef struct _LEAP_FIDUCIAL_POSE_EVENT {
   const char* family;
 
   /**
-   * The size of the tag measured in millimeters.
+   * The size of the tag measured in metres.
    * Not implemented.
    */
   float size;
@@ -2332,20 +2306,13 @@ typedef enum _eLeapEventType {
    *
    *    ```
    *    "fiducial_tracker": {
-   *      "family": "Tag25h9",
-   *      "size": 0.05,
-   *      "frequency": 1
+   *      "family": "TagStandard41h12", // AprilTag family to track.
+   *      "size": 0.05, // Width of the tag in meters, e.g. 50mm
+   *      "frequency": 1 // Frequency of tracking (1 = every frame)
    *    }
    *    ```
    *
-   *    `family`    - AprilTag family to track.
-   *    `size`      - Width of the tag in meters, e.g. 0.05 = 50mm.
-   *    `frequency` - Frequency of marker tag tracking updates (1 = every frame, 2 = every 2 frames, etc).
-   *
-   * 2. When calling LeapCreateConnection, set the eLeapConnectionConfig_FiducialTracking
-   *    flag this enables AprilTags execution on the server.
-   *
-   * 3. To maximise the tag tracking range, enable the "full_res_fiducials"
+   * 2. To maximise the tag tracking range, enable the "full_res_fiducials"
    *    setting outside the "fiducial_tracker" block:
    *
    *    "full_res_fiducials": true
@@ -2353,12 +2320,17 @@ typedef enum _eLeapEventType {
    *    With a marker width of 50mm (0.05m), we expect markers to perform well at
    *    a distance of up to 500mm using the Leap2 camera and ‘full_res_fiducials’.
    *
-   * 4. When a fiducial marker is detected, a notification event is triggered.
+   * 3. When a fiducial marker is detected, a notification event is triggered.
    *    The pose data for the detected marker is stored in the "fiducial_pose_event"
    *    union member.
    *
    * Note:
    * - Fiducial marker tracking can only be enabled through the configuration file.
+   * - The "family" parameter specifies the AprilTag family to track (e.g.,
+   *   TagStandard41h12).
+   * - The "size" parameter defines the width of the tag in meters.
+   * - The "frequency" parameter determines how often the tracking should occur
+   *   (1 = every frame).
    *
    * Use Cases:
    * - Object placement and interaction in AR/VR environments
@@ -2372,9 +2344,9 @@ typedef enum _eLeapEventType {
    * (https://github.com/AprilRobotics/apriltag-generation) which provides a web
    * interface for creating and customising AprilTag markers.
    *
-   * Whilst we are able to track most marker families, we recommend using the
-   * marker family Tag25h9 for optimum tracking performance.
-   * Downloaded or printed markers can then be placed in the physical environment for tracking.
+   * The TagStandard41h12 and TagStandard36h11 libraries have been tested extensively,
+   * however, it may work with others. Downloaded or printed markers can then be
+   * placed in the physical environment for tracking.
    *
    * Optimising Marker Performance:
    * 1. Maximise the visible contrast of markers ideally printing onto non-reflective,
@@ -3443,7 +3415,12 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateEyePositions(LEAP_CONNECTION hConne
 #define LEAP_HINT_APP_PASSTHROUGH "app_passthrough"
 
 /** \ingroup Hints
- * Deprecated. Please use `LEAP_HINT_HIGH_HAND_FIDELITY`
+ * Requested using "ultra_performance_mode".
+ * 
+ * Hint: Increases the fidelity and responsiveness of hand tracking at the expense of compute resources.
+ *
+ * Attempts to match available system resources may be made
+ * However, callers should take steps to maintain sufficient application resources"
  */
 #define LEAP_HINT_ULTRA_PERFORMANCE_MODE "ultra_performance_mode"
 
@@ -3524,106 +3501,6 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapSetClassifierThresholdsEx(
   LEAP_DEVICE hDevice,
   float acquireConfidence,
   float releaseConfidence);
-
-/** \ingroup Functions
- * Get the camera calibration for the connected device.
- *
- * The calibration is a generic Kannala-Brandt fisheye calibration with 4 distortion
- * parameters specified in JSON format.
- *
- * The calibration string matches the one that is read from the device and therefore
- * does not account for any post-processing that's been applied by the tracking service.
- * This means that it should not be used with any of the coordinates output by other
- * functions in the LeapC API.
- *
- * The pCalibration pointer is guaranteed to remain valid until either:
- * 1). `LeapGetRawCalibration` or `LeapGetRawCalibrationEx` is called again
- * 2). The LeapC connection is closed
- *
- * This function returns eLeapRS_NotAvailable if the client is not aware of any devices
- * yet. It will return eLeapRS_UnknownError if the connected device does not have a
- * calibration of the correct type.
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param pCalibration A pointer to a null-terminated calibration string in JSON format.
- * @returns The operation result code, a member of the eLeapRS enumeration.
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapGetRawCalibration(
-  LEAP_CONNECTION hConnection,
-  const char** pCalibration);
-
-/** \ingroup Functions
- * Get the camera calibration for the specified device.
- *
- * The calibration is a generic Kannala-Brandt fisheye calibration with 4 distortion
- * parameters specified in JSON format.
- *
- * The calibration string matches the one that is read from the device and therefore
- * does not account for any post-processing that's been applied by the tracking service.
- * This means that it should not be used with any of the coordinates output by other
- * functions in the LeapC API.
- *
- * The pCalibration pointer is guaranteed to remain valid until either:
- * 1). `LeapGetRawCalibration` or `LeapGetRawCalibrationEx` is called again
- * 2). The LeapC connection is closed
- *
- * This function returns eLeapRS_NotAvailable if the client is not aware of any devices
- * yet. It will return eLeapRS_UnknownError if the connected device does not have a
- * calibration of the correct type.
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param hDevice A device handle returned by LeapOpenDevice().
- * @param pCalibration A pointer to a null-terminated calibration string in JSON format.
- * @returns The operation result code, a member of the eLeapRS enumeration.
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapGetRawCalibrationEx(
-  LEAP_CONNECTION hConnection,
-  LEAP_DEVICE hDevice,
-  const char** pCalibration);
-
-/** \ingroup Functions
- * Get the temperature for the default device. Only LeapMotionController2 supported
- * 
- * The pTemperatures pointer is guaranteed to remain valid until either:
- * 1). `LeapGetDeviceTemperatures` or `LeapGetDeviceTemperaturesEx` is called again
- * 2). The LeapC connection is closed
- * 
- * This function returns eLeapRS_NotAvailable if the client has not received any temperatures
- * for hDevice from the server. Temperatures will only be received by the client if the 
- * "temperature_query_interval_ms" value has been set in hand_tracker_config.json
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param pTemperatures A pointer to an array of temperatures.
- * @param numTemperaturesFound The number of temperatures provided by the server
- * @returns The operation result code, a member of the eLeapRS enumeration.
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceTemperatures(
-  LEAP_CONNECTION hConnection,
-  const float* pTemperatures[],
-  int* numTemperaturesFound);
-
-/** \ingroup Functions
- * Get the temperature for the specified device. Only LeapMotionController2 supported.
- * 
- * The pTemperatures pointer is guaranteed to remain valid until either:
- * 1). `LeapGetDeviceTemperatures` or `LeapGetDeviceTemperaturesEx` is called again
- * 2). The LeapC connection is closed
- * 
- * This function returns eLeapRS_NotAvailable if the client has not received any temperatures
- * for hDevice from the server. Temperatures will only be received by the client if the 
- * "temperature_query_interval_ms" value has been set in hand_tracker_config.json
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param hDevice A device handle returned by LeapOpenDevice().
- * @param pTemperatures A pointer to an array of temperatures
- * @param numTemperaturesFound The number of temperatures provided by the server for hDevice
- * @returns The operation result code, a member of the eLeapRS enumeration.
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceTemperaturesEx(
-  LEAP_CONNECTION hConnection,
-  LEAP_DEVICE hDevice,
-  const float* pTemperatures[],
-  int* numTemperaturesFound);
 
 #ifdef __cplusplus
 }

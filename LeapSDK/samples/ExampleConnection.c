@@ -31,7 +31,7 @@ static void serviceMessageLoop(void * unused);
 static void* serviceMessageLoop(void * unused);
 #endif
 static void setFrame(const LEAP_TRACKING_EVENT *frame);
-static void setDevice(const LEAP_DEVICE, const LEAP_DEVICE_INFO *deviceProps);
+static void setDevice(const LEAP_DEVICE_INFO *deviceProps);
 
 //External state
 bool IsConnected = false;
@@ -41,7 +41,6 @@ static volatile bool _isRunning = false;
 static LEAP_CONNECTION connectionHandle = NULL;
 static LEAP_TRACKING_EVENT *lastFrame = NULL;
 static LEAP_DEVICE_INFO *lastDevice = NULL;
-static LEAP_DEVICE lastDeviceHandle = NULL;
 
 //Callback function pointers
 struct Callbacks ConnectionCallbacks;
@@ -154,7 +153,7 @@ static void handleDeviceEvent(const LEAP_DEVICE_EVENT *device_event){
       return;
     }
   }
-  setDevice(deviceHandle, &deviceProperties);
+  setDevice(&deviceProperties);
   if(ConnectionCallbacks.on_device_found){
     ConnectionCallbacks.on_device_found(&deviceProperties);
   }
@@ -336,9 +335,8 @@ LEAP_TRACKING_EVENT* GetFrame(){
  * Caches the last device found by copying the device info struct returned by
  * LeapC.
  */
-static void setDevice(LEAP_DEVICE device, const LEAP_DEVICE_INFO *deviceProps){
+static void setDevice(const LEAP_DEVICE_INFO *deviceProps){
   LockMutex(&dataLock);
-  lastDeviceHandle = device;
   if(lastDevice){
     free(lastDevice->serial);
   } else {
@@ -360,41 +358,6 @@ LEAP_DEVICE_INFO* GetDeviceProperties(){
 }
 
 //End of polling example-specific code
-
-/* Used in DeviceTransform Example: */
-bool GetDeviceTransform(float buffer[16])
-{
-  if(!buffer)
-  {
-    printf("Failed to get device transform, invalid argument: output buffer was NULL.\n");
-    return false;
-  }
-
-  bool available = false;
-  eLeapRS result = eLeapRS_UnknownError;
-  LockMutex(&dataLock);
-  available = LeapDeviceTransformAvailable(lastDeviceHandle);
-  if(available)
-  {
-    result = LeapGetDeviceTransform(lastDeviceHandle, buffer);
-  }
-  UnlockMutex(&dataLock);
-
-  if(!available)
-  {
-    printf("Device transform not available for this device\n");
-    return false;
-  }
-
-  if(result != eLeapRS_Success)
-  {
-    printf("Failed to get device transform: %s.\n", ResultString(result));
-    return false;
-  }
-  
-  return true;
-}
-//End of DeviceTransform example-specific code
 
 /** Translates eLeapRS result codes into a human-readable string. */
 const char* ResultString(eLeapRS r) {

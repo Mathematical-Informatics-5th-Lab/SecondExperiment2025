@@ -14,6 +14,7 @@
 #include <time.h>
 #include <math.h>
 #include "LeapC.h"
+#include "ExampleConnection.h"
 
 /*
  This sample tracks the left index tip and a fiducial marker and tells you the
@@ -49,18 +50,15 @@ int main(int argc, char** argv) {
 
   LEAP_CONNECTION_MESSAGE msg;
   unsigned int timeout_ms = 1000;
+  eLeapRS res = eLeapRS_NotAvailable;
 
   LEAP_TRACKING_EVENT* latest_tracking_event = malloc(sizeof(LEAP_TRACKING_EVENT));
   latest_tracking_event->nHands = 0;
   latest_tracking_event->pHands = malloc(2 * sizeof(LEAP_HAND));
   
-  while (1)
+  do
   {
-    eLeapRS res = LeapPollConnection(connection, timeout_ms, &msg);
-    if (res != eLeapRS_Success)
-    {
-      continue;
-    }
+    LeapPollConnection(connection, timeout_ms, &msg);
 
     if (msg.type == eLeapEventType_Fiducial && latest_tracking_event->nHands > 0)
     {
@@ -85,7 +83,8 @@ int main(int argc, char** argv) {
     {
       clone_tracking_event(latest_tracking_event, msg.tracking_event);
     }
-  }
+    
+  } while (res != eLeapRS_Success);
   
   return 0;
 }

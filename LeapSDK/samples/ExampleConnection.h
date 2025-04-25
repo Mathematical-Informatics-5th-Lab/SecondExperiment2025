@@ -18,7 +18,6 @@ void CloseConnection(void);
 void DestroyConnection(void);
 LEAP_TRACKING_EVENT* GetFrame(void); //Used in polling example
 LEAP_DEVICE_INFO* GetDeviceProperties(void); //Used in polling example
-bool GetDeviceTransform(float[16]); //Used in device transform example
 const char* ResultString(eLeapRS r);
 
 /* State */

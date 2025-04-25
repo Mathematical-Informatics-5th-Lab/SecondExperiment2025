@@ -12,7 +12,7 @@ else()
 endif()
 
 find_package(LeapSDK
-     6
+     5
      REQUIRED
      PATHS
 	 	"${ULTRALEAP_PATH_ROOT}")

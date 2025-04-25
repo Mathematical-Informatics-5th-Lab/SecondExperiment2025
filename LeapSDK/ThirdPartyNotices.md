@@ -5762,13 +5762,13 @@ SOFTWARE.
 -------------------------------------------------------------------------------
 
 
-zlib (1.3.1) - The zlib/libpng License (Zlib)
+zlib (1.2.11) - The zlib/libpng License (Zlib)
 ===============================================================================
 ```
  zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.3.1, January 22nd, 2024
+  version 1.2.11, January 15th, 2017
 
-  Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
+  Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -5793,6 +5793,7 @@ zlib (1.3.1) - The zlib/libpng License (Zlib)
   The data format used by the zlib library is described by RFCs (Request for
   Comments) 1950 to 1952 in the files http://tools.ietf.org/html/rfc1950
   (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
+
 ```
 -------------------------------------------------------------------------------
 
