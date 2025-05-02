@@ -1,6 +1,6 @@
 import numpy as np
-import sounddevice
 import random
+import pygame  # type: ignore
 
 class SoundGen:
     '''
@@ -19,13 +19,14 @@ class SoundGen:
     '''
     def __init__(self) -> None:
         self.duration = 1.0
-        self.rate = 48000
+        self.rate = 44100
         self.param_names = []
         self.params = {}
+        self.amplitude = 22000
 
-    def play(self,params:dict[str, float]) -> None:
+    def generate(self,params:dict[str, float]) -> pygame.mixer.Sound:
         '''
-        音を再生するメソッド
+        音を生成するメソッド
 
         Parameters
         ----------
@@ -57,7 +58,7 @@ class PulseGen(SoundGen):
             'AM': 0.0,
         }
 
-    def play(self, params:dict[str, float]) -> None:
+    def generate(self, params:dict[str, float]) -> pygame.mixer.Sound:
         # update parameters
         for key in params:
             if key in self.params:
@@ -77,11 +78,14 @@ class PulseGen(SoundGen):
             else:
                 return -0.5
         t = np.linspace(0., self.duration, int(self.rate*self.duration))
-        x = (1.+0.4*np.sin(2.*np.pi*am*t))*np.array([pulse(2.*np.pi*freq*t_, dutycycle) for t_ in t])
+        waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t))*np.array([pulse(2.*np.pi*freq*t_, dutycycle) for t_ in t])
         # x = Distortion(x, distortion)
+        waveform = waveform.astype(np.int16)
+        waveform_stereo = np.column_stack((waveform, waveform))
+        sound = pygame.sndarray.make_sound(waveform_stereo)
+        return sound
 
-        sounddevice.play(x, samplerate=self.rate)
-        sounddevice.wait()
+
 
 
 class SineGen(SoundGen):
@@ -108,7 +112,7 @@ class SineGen(SoundGen):
             # 'distortion': 0.0,
         }
 
-    def play(self, params:dict[str, float]) -> None:
+    def generate(self, params:dict[str, float]) -> pygame.mixer.Sound:
         # update parameters
         for key in params:
             if key in self.params:
@@ -120,10 +124,11 @@ class SineGen(SoundGen):
         # distortion = self.params['distortion']
 
         t = np.linspace(0., self.duration, int(self.rate*self.duration))
-        x = (1.+0.4*np.sin(2.*np.pi*am*t))*np.sin(2.*np.pi*(freq+fm*np.sin(2.*np.pi*1200*t))*t)
-
-        sounddevice.play(x, samplerate=self.rate)
-        sounddevice.wait()
+        waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t))*np.sin(2.*np.pi*(freq+fm*np.sin(2.*np.pi*1200*t))*t)
+        waveform = waveform.astype(np.int16)
+        waveform_stereo = np.column_stack((waveform, waveform))
+        sound = pygame.sndarray.make_sound(waveform_stereo)
+        return sound
 
 class RandomSoundGen():
     '''
@@ -151,19 +156,57 @@ class RandomSoundGen():
             raise ValueError("Invalid sound generator name")
         self.param_name = random.choice(self.sound_gen.param_names)
 
-    def play(self, param:float) -> None:
+    def generate(self, param:float) -> pygame.mixer.Sound:
         '''
-        音を再生するメソッド
+        音を生成するメソッド
         Parameters
         ----------
         param : float
             音のパラメータの値 (0.0~1.0)
         '''
-        self.sound_gen.play({self.param_name: param})
+        return self.sound_gen.generate({self.param_name: param})
+
+    def set_sample_rate(self, rate:int) -> None:
+        '''
+        サンプリングレートを設定するメソッド
+        Parameters
+        ----------
+        rate : int
+            サンプリングレート
+        '''
+        self.sound_gen.rate = rate
+
+    def get_sample_rate(self) -> int:
+        '''
+        サンプリングレートを取得するメソッド
+        Returns
+        -------
+        int
+            サンプリングレート
+        '''
+        return self.sound_gen.rate
+
+    def set_duration(self, duration:float) -> None:
+        '''
+        音の長さを設定するメソッド
+        Parameters
+        ----------
+        duration : float
+            音の長さ(秒)
+        '''
+        self.sound_gen.duration = duration
 
 if __name__ == "__main__":
     # Example usage
     sound_gen = RandomSoundGen()
-    sound_gen.sound_gen.duration=0.5
+    sound_gen.set_duration(0.5)
+
+    pygame.mixer.pre_init(frequency=sound_gen.get_sample_rate(), size=-16, channels=2)
+    pygame.init()
+
+    print(f"sound_name: {sound_gen.sound_name}")
+    print(f"param_name: {sound_gen.param_name}")
     for i in range(11):
-        sound_gen.play(param=i/10.)
+        sound = sound_gen.generate(param=i/10.)
+        sound.play()
+        pygame.time.delay(600)
