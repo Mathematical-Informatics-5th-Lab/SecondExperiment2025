@@ -24,3 +24,24 @@ poetry install --no-root
 ```
 poetry run python leapc-python-bindings/examples/tracking_event_example.py
 ```
+
+## wslでusbを認識する方法
+1. usbipd-winをインストールする(powershellで実行)  
+```
+winget install usbipd
+```
+2. usbの一覧を表示する(管理者権限のpowershellで実行)  
+```
+usbipd list
+```
+出力例：
+```
+BUSID  VID:PID    DEVICE                                                        STATE
+1-6    2b7e:c757  FHD Webcam, IR Camera                                         Not shared
+1-13   2936:1206  Ultraleap                                                     Shared
+```
+3. wslにusbをアタッチ(管理者権限のpowershellで実行)  
+```
+usbipd attach --wsl --busid 1-13
+```
+上の1-13はUltraleapが接続されているBUSIDを入力してください.
