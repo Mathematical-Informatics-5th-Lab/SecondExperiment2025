@@ -7,9 +7,14 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-    "numpy (>=2.2.4,<3.0.0)"
-]
+
+[tool.poetry.dependencies]
+python = ">=3.11"  # ← 明示的に入れるとより明確
+numpy = ">=2.2.4,<3.0.0"
+build = ">=1.2.2.post1,<2.0.0"
+cffi = ">=1.17.1,<2.0.0"
+opencv-python = ">=4.11.0.86,<5.0.0.0"
+leap = { path = "./leapc-python-bindings/leapc-python-api", develop = true }
 
 
 [build-system]
