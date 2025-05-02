@@ -156,9 +156,9 @@ class RandomSoundGen():
             raise ValueError("Invalid sound generator name")
         self.param_name = random.choice(self.sound_gen.param_names)
 
-    def generate(self, param:float) -> None:
+    def generate(self, param:float) -> pygame.mixer.Sound:
         '''
-        音を再生するメソッド
+        音を生成するメソッド
         Parameters
         ----------
         param : float
