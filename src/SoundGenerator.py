@@ -85,9 +85,6 @@ class PulseGen(SoundGen):
         sound = pygame.sndarray.make_sound(waveform_stereo)
         return sound
 
-
-
-
 class SineGen(SoundGen):
     '''
     サイン波音を生成するクラス
@@ -198,15 +195,15 @@ class RandomSoundGen():
 
 if __name__ == "__main__":
     # Example usage
-    sound_gen = RandomSoundGen()
-    sound_gen.set_duration(0.5)
+    sound_gen = RandomSoundGen() # ランダムな音を生成するクラスのインスタンスを作成
+    sound_gen.set_duration(0.5) # 音の長さを0.5秒に設定
 
-    pygame.mixer.pre_init(frequency=sound_gen.get_sample_rate(), size=-16, channels=2)
-    pygame.init()
+    pygame.mixer.pre_init(frequency=sound_gen.get_sample_rate(), size=-16, channels=2) # サンプリングレートを設定
+    pygame.init() # pygameの初期化
 
     print(f"sound_name: {sound_gen.sound_name}")
     print(f"param_name: {sound_gen.param_name}")
     for i in range(11):
-        sound = sound_gen.generate(param=i/10.)
-        sound.play()
-        pygame.time.delay(600)
+        sound = sound_gen.generate(param=i/10.) # 音のパラメータの値を0.0~1.0の範囲で生成
+        sound.play() # 音を再生
+        pygame.time.delay(600) # 600ミリ秒待機
