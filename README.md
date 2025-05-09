@@ -38,10 +38,16 @@ usbipd list
 ```
 BUSID  VID:PID    DEVICE                                                        STATE
 1-6    2b7e:c757  FHD Webcam, IR Camera                                         Not shared
-1-13   2936:1206  Ultraleap                                                     Shared
+1-13   2936:1206  Ultraleap                                                     Not shared
+```  
+3. wslにusbをシェアできるようにする(管理者権限のpowershellで実行)  
 ```
-3. wslにusbをアタッチ(管理者権限のpowershellで実行)  
+usbipd bind --busid {BUSID}
 ```
-usbipd attach --wsl --busid 1-13
+上の{BUSID}にはUltraleapが接続されているBUSIDを入力してください. (2.の出力例から言えば1-13)  
+なお、1度実行すればその後USBを接続し直してもこの操作をやり直す必要はありません. (2.でusbの一覧を表示したときにSTATEがSharedになっていれば大丈夫)
+
+4. wslにusbをアタッチ(管理者権限のpowershellで実行)  
 ```
-上の1-13はUltraleapが接続されているBUSIDを入力してください.
+usbipd attach --wsl --busid {BUSID}
+```
