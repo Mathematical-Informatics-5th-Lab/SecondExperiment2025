@@ -11,14 +11,13 @@ class GameScene:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        self.scenes = {
-            "start": StartScene(self.switch_scene),
-            "play": PlayScene()
-        }
-        self.current_scene = self.scenes["start"]
+        self.current_scene = StartScene(self.switch_scene)
 
     def switch_scene(self, scene_name):
-        self.current_scene = self.scenes[scene_name]
+        if scene_name == "start":
+            self.current_scene = StartScene(self.switch_scene)
+        elif scene_name == "play":
+            self.current_scene = PlayScene(self.switch_scene)
 
     def should_quit(self):
         return not self.running
