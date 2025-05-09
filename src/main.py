@@ -12,7 +12,6 @@ def main():
         hand_pos = leap_input.get_hand_position()
         hand_pos = random.random()  # テスト用
         game_scene.update(hand_pos)
-        print(f"Hand Position: {hand_pos:.2f}")
 
     game_scene.cleanup()
 
