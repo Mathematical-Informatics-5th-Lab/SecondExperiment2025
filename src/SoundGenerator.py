@@ -85,9 +85,6 @@ class PulseGen(SoundGen):
         sound = pygame.sndarray.make_sound(waveform_stereo)
         return sound
 
-
-
-
 class SineGen(SoundGen):
     '''
     サイン波音を生成するクラス
