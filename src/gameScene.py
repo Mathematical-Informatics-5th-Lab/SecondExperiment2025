@@ -36,9 +36,9 @@ class GameScene:
         self.current_scene.update(hand_position)
         self.current_scene.draw(self.screen)
         pygame.display.flip()
-        sound = self.sound_gen.generate(param=hand_position)
-        sound.play()
-        self.clock.tick(10)
+        # sound = self.sound_gen.generate(param=hand_position)
+        # sound.play()
+        self.clock.tick(1)
 
     def cleanup(self):
         pygame.quit()
