@@ -51,3 +51,8 @@ usbipd bind --busid {BUSID}
 ```
 usbipd attach --wsl --busid {BUSID}
 ```
+
+5. wslにusbがアタッチされていることを確認する(wslのターミナルで実行)
+```
+lsusb
+```
