@@ -4,19 +4,23 @@ import random
 import time
 from .baseScene import BaseScene
 import SoundGenerator
+from config import Config
 
-WIDTH, HEIGHT = 800, 600
-CHECK_INTERVAL = 3.0  # 定期チェック間隔（秒）
-WAIT_TIME = 2.0       # 判定時に静止して評価を出す時間（秒）
-REPEAT_COUNT = 5
-THRESHOLD = 0.1       # 成功条件の閾値
+# 定数
+WIDTH = Config.WIDTH
+HEIGHT = Config.HEIGHT
+FRAME_RATE = Config.FRAME_RATE
+CHECK_INTERVAL = Config.CHECK_INTERVAL
+WAIT_TIME = Config.WAIT_TIME
+REPEAT_COUNT = Config.REPEAT_COUNT
+THRESHOLD = Config.THRESHOLD
 
 class PlayScene(BaseScene):
     def __init__(self, switch_scene_callback):
         self.switch_scene = switch_scene_callback
         self.font = pygame.font.SysFont(None, 36)
         self.sound_gen = SoundGenerator.RandomSoundGen()
-        self.sound_gen.set_duration(1.0 / 10.0)
+        self.sound_gen.set_duration(1.0 / FRAME_RATE)
         pygame.mixer.pre_init(frequency=self.sound_gen.get_sample_rate(), size=-16, channels=2)
         self.reset_game()
 

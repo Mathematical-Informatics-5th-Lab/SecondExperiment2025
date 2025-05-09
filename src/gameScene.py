@@ -1,12 +1,18 @@
 # gameScene.py
 import pygame
-from scenes.startScene import StartScene
-from scenes.playScene import PlayScene
 
+from config import Config
+from scenes.playScene import PlayScene
+from scenes.startScene import StartScene
+
+# 定数
+WIDTH = Config.WIDTH
+HEIGHT = Config.HEIGHT
+FRAME_RATE = Config.FRAME_RATE
 class GameScene:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Blur Game")
         self.clock = pygame.time.Clock()
         self.running = True
@@ -31,7 +37,7 @@ class GameScene:
         self.current_scene.update(hand_position)
         self.current_scene.draw(self.screen)
         pygame.display.flip()
-        self.clock.tick(60)
+        self.clock.tick(FRAME_RATE)
 
     def cleanup(self):
         pygame.quit()
