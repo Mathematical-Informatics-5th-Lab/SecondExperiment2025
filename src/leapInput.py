@@ -2,11 +2,12 @@
 import threading
 import time
 import leap
+from leapdata import LeapData
 
 class LeapInput:
     def __init__(self):
-        self.hand_position = (320, 240)
         self._start_listener()
+        self.leap_data = None
 
     def _start_listener(self):
         def leap_thread():
@@ -14,10 +15,8 @@ class LeapInput:
                 def on_tracking_event(_, event):
                     if event.hands:
                         hand = event.hands[0]
-                        palm = hand.palm.position
-                        x = int(palm.x) + 320
-                        y = 480 - int(palm.y)
-                        self.hand_position = (x, y)
+                        fingers = hand.fingers
+                        self.leap_data = LeapData(hand, fingers)
 
             listener = MyListener()
             connection = leap.Connection()
@@ -31,4 +30,4 @@ class LeapInput:
         thread.start()
 
     def get_hand_position(self):
-        return self.hand_position
+        return self.leap_data
