@@ -23,6 +23,7 @@ class SoundGen:
         self.param_names = []
         self.params = {}
         self.amplitude = 22000
+        self.t_start = 0.0
 
     def generate(self,params:dict[str, float]) -> pygame.mixer.Sound:
         '''
@@ -77,7 +78,8 @@ class PulseGen(SoundGen):
                 return 0.5
             else:
                 return -0.5
-        t = np.linspace(0., self.duration, int(self.rate*self.duration))
+        t = np.linspace(self.t_start, self.t_start+self.duration, int(self.rate*self.duration))
+        self.t_start += self.duration
         waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t))*np.array([pulse(2.*np.pi*freq*t_, dutycycle) for t_ in t])
         # x = Distortion(x, distortion)
         waveform = waveform.astype(np.int16)
@@ -120,7 +122,8 @@ class SineGen(SoundGen):
         am = 20*(2**self.params['AM']-1)
         # distortion = self.params['distortion']
 
-        t = np.linspace(0., self.duration, int(self.rate*self.duration))
+        t = np.linspace(self.t_start, self.t_start+self.duration, int(self.rate*self.duration))
+        self.t_start += self.duration
         waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t))*np.sin(2.*np.pi*(freq+fm*np.sin(2.*np.pi*1200*t))*t)
         waveform = waveform.astype(np.int16)
         waveform_stereo = np.column_stack((waveform, waveform))
