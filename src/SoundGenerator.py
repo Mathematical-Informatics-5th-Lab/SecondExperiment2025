@@ -58,6 +58,8 @@ class PulseGen(SoundGen):
             'dutycycle': 0.0,
             'AM': 0.0,
         }
+        self.phase = 0.0
+        self.AM_phase = 0.0
 
     def generate(self, params:dict[str, float]) -> pygame.mixer.Sound:
         # update parameters
@@ -78,9 +80,10 @@ class PulseGen(SoundGen):
                 return 0.5
             else:
                 return -0.5
-        t = np.linspace(self.t_start, self.t_start+self.duration, int(self.rate*self.duration))
-        self.t_start += self.duration
-        waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t))*np.array([pulse(2.*np.pi*freq*t_, dutycycle) for t_ in t])
+        t = np.linspace(0., self.duration, int(self.rate*self.duration))
+        waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t+self.AM_phase))*np.array([pulse(2.*np.pi*freq*t_+self.phase, dutycycle) for t_ in t])
+        self.phase += 2.*np.pi*freq*self.duration
+        self.AM_phase += 2.*np.pi*am*self.duration
         # x = Distortion(x, distortion)
         waveform = waveform.astype(np.int16)
         waveform_stereo = np.column_stack((waveform, waveform))
@@ -110,6 +113,9 @@ class SineGen(SoundGen):
             'AM': 0.0,
             # 'distortion': 0.0,
         }
+        self.phase = 0.0
+        self.FM_phase = 0.0
+        self.AM_phase = 0.0
 
     def generate(self, params:dict[str, float]) -> pygame.mixer.Sound:
         # update parameters
@@ -122,9 +128,12 @@ class SineGen(SoundGen):
         am = 20*(2**self.params['AM']-1)
         # distortion = self.params['distortion']
 
-        t = np.linspace(self.t_start, self.t_start+self.duration, int(self.rate*self.duration))
-        self.t_start += self.duration
-        waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t))*np.sin(2.*np.pi*(freq+fm*np.sin(2.*np.pi*1200*t))*t)
+        t = np.linspace(0., self.duration, int(self.rate*self.duration))
+        waveform = self.amplitude*(1.+0.4*np.sin(2.*np.pi*am*t+self.AM_phase))*np.sin(2.*np.pi*(freq+fm*np.sin(2.*np.pi*1200*t+self.FM_phase))*t+self.phase)
+        self.phase += 2.*np.pi*freq*self.duration
+        self.FM_phase += 2.*np.pi*fm*self.duration
+        self.AM_phase += 2.*np.pi*am*self.duration
+        # x = Distortion(x, distortion)
         waveform = waveform.astype(np.int16)
         waveform_stereo = np.column_stack((waveform, waveform))
         sound = pygame.sndarray.make_sound(waveform_stereo)
@@ -199,14 +208,14 @@ class RandomSoundGen():
 if __name__ == "__main__":
     # Example usage
     sound_gen = RandomSoundGen() # ランダムな音を生成するクラスのインスタンスを作成
-    sound_gen.set_duration(0.5) # 音の長さを0.5秒に設定
+    sound_gen.set_duration(0.1) # 音の長さを0.5秒に設定
 
     pygame.mixer.pre_init(frequency=sound_gen.get_sample_rate(), size=-16, channels=2) # サンプリングレートを設定
     pygame.init() # pygameの初期化
 
     print(f"sound_name: {sound_gen.sound_name}")
     print(f"param_name: {sound_gen.param_name}")
-    for i in range(11):
-        sound = sound_gen.generate(param=i/10.) # 音のパラメータの値を0.0~1.0の範囲で生成
+    for i in range(101):
+        sound = sound_gen.generate(param=i/100.) # 音のパラメータの値を0.0~1.0の範囲で生成
         sound.play() # 音を再生
-        pygame.time.delay(600) # 600ミリ秒待機
+        pygame.time.delay(100) # 600ミリ秒待機
