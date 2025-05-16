@@ -21,17 +21,24 @@ class PlayScene(BaseScene):
         self.font = pygame.font.SysFont(None, 36)
 
         self.player = SoundGenerator.RandomSoundPlayer()
-        self.player.start(0.0)
         self.reset_game()
 
     def reset_game(self):
+        # TODO: 理想的なパラメータがあれば, その範囲になるように調整する必要あり
         self.target_pos = random.uniform(0, 1)
+
         self.check_times = 0
         self.last_check = time.time()
         self.hand_position = 0
-        self.state = "playing"  # "playing" / "waiting" / "done"
-        self.wait_start_time = None
+        self.state = "listening"  # 最初は正解音提示フェーズ
+        self.listen_start_time = time.time()
         self.result = None
+        self.substate = "target"  # "target" → "done"
+        self.wait_start_time = None
+
+        self.remaining_time = CHECK_INTERVAL
+
+        self.player.start(self.target_pos)
     
     def _calculate_similarity(self, hand_pos, target_pos):
         """
@@ -65,7 +72,14 @@ class PlayScene(BaseScene):
     def update(self, hand_position):
         now = time.time()
 
-        if self.state == "playing":
+        if self.state == "listening":
+            # 最初の正解音を3秒流すだけ
+            if now - self.listen_start_time >= 3.0:
+                self.state = "playing"
+                self.last_check = now
+                self.player.update_param(self.target_pos)  # 最初は0.0で始める（updateで更新される）
+
+        elif self.state == "playing":
             self.hand_position = min(max(hand_position, 0), 1)
             self.player.update_param(self.hand_position)
 
@@ -74,9 +88,23 @@ class PlayScene(BaseScene):
                 self.wait_start_time = now
                 self.frozen_hand_pos = self.hand_position
                 self.check_times += 1
+                self.substate = "user"
+                self.player.update_param(self.frozen_hand_pos)  # 自分の音を固定
+
+            self.remaining_time = max(0.0, CHECK_INTERVAL - (now - self.last_check))
+
 
         elif self.state == "waiting":
-            if now - self.wait_start_time >= WAIT_TIME:
+            elapsed = now - self.wait_start_time
+
+            if self.substate == "user" and elapsed >= 3.0:
+                self.substate = "target"
+                self.wait_start_time = now  # 再スタート
+                self.player.stop()
+                # time.sleep(0.1)  # 音を止める
+                self.player.start(self.target_pos)
+
+            elif self.substate == "target" and elapsed >= 3.0:
                 diff = abs(self.frozen_hand_pos - self.target_pos)
                 self.last_check = now  # 次のチェックの基準を更新
 
@@ -89,11 +117,11 @@ class PlayScene(BaseScene):
                     self.state = "done"
                     self.done_time = now
                 else:
-                    # 失敗だが回数は残っている → 再挑戦
                     self.state = "playing"
 
         elif self.state == "done":
             if now - self.done_time >= 1.0:
+                self.player.stop()
                 self.switch_scene("start")
 
     def draw(self, screen):
@@ -133,6 +161,22 @@ class PlayScene(BaseScene):
             percent_text = f"Match: {similarity*100:.1f}%"
             screen.blit(self.font.render("Checking...", True, (100, 100, 100), (255, 255, 255)), (250, 300))
             screen.blit(self.font.render(percent_text, True, (0, 0, 0), (255, 255, 255)), (250, 340))
+
+            # どの音を聞いているか表示
+            if self.substate == "user":
+                label = "🔊 Your Sound"
+            elif self.substate == "target":
+                label = "🎯 Target Sound"
+            else:
+                label = ""
+            screen.blit(self.font.render(label, True, (0, 0, 100), (255, 255, 255)), (250, 380))
+
+        if self.state == "playing":
+            countdown_text = f"Next check in: {self.remaining_time:.1f}s"
+            screen.blit(self.font.render(countdown_text, True, (0, 0, 0), (255, 255, 255)), (250, 300))
+
+        if self.state == "listening":
+            screen.blit(self.font.render("🎯 Listening to Target Sound...", True, (0, 0, 100), (255, 255, 255)), (200, 300))
 
         if self.result == "success":
             screen.blit(self.font.render("🎉 Success! Returning...", True, (0, 150, 0)), (200, 400))
