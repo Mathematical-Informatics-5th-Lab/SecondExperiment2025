@@ -14,6 +14,8 @@ CHECK_INTERVAL = Config.CHECK_INTERVAL
 WAIT_TIME = Config.WAIT_TIME
 REPEAT_COUNT = Config.REPEAT_COUNT
 THRESHOLD = Config.THRESHOLD
+BAR_HEIGHT = Config.BAR_HEIGHT
+MAIN_HEIGHT = Config.MAIN_HEIGHT
 
 class PlayScene(BaseScene):
     def __init__(self, switch_scene_callback, attr_using):
@@ -125,14 +127,10 @@ class PlayScene(BaseScene):
                 self.player.stop()
                 self.switch_scene("start")
 
-    def draw(self, screen):
-        screen.fill((0, 0, 255, 30))
-
-        hand_pos = self.frozen_hand_pos if self.state in ["waiting", "done"] else self.hand_position
-        similarity = self._calculate_similarity(hand_pos, self.target_pos)
-        min_radius = min(WIDTH, HEIGHT)  * 0.01
-        radius_similarity = min(WIDTH, HEIGHT) * 0.3
-        radius_t = max(WIDTH, HEIGHT)*0.3
+    def draw_circle(self, screen, similarity):
+        min_radius = min(WIDTH, MAIN_HEIGHT)  * 0.01
+        radius_similarity = min(WIDTH, MAIN_HEIGHT) * 0.3
+        radius_t = max(WIDTH, MAIN_HEIGHT)*0.3
         steps = 80  # より滑らかに
 
         for i in range(steps):
@@ -143,43 +141,57 @@ class PlayScene(BaseScene):
             alpha = int(255 * t**2)  # 外が濃くなる
             color = (255, 255, 255, alpha)
 
-            surf = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-            pygame.draw.circle(surf, color, (WIDTH // 2, HEIGHT // 2), radius)
+            surf = pygame.Surface((WIDTH, MAIN_HEIGHT), pygame.SRCALPHA)
+            pygame.draw.circle(surf, color, (WIDTH // 2, MAIN_HEIGHT // 2), radius)
             screen.blit(surf, (0, 0))
 
+    def draw_percentage(self, screen, similarity):
         # 中央にパーセンテージ表示
         font = pygame.font.SysFont(None, 100)
         text = font.render(f"{int(similarity * 100)}%", True, (0, 0, 0))
-        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        text_rect = text.get_rect(center=(WIDTH // 2, MAIN_HEIGHT // 2))
         screen.blit(text, text_rect)
 
-        # UI表示
+    def draw_current_status(self, screen):
         screen.blit(self.font.render(f"Target: {self.target_pos:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 20))
         screen.blit(self.font.render(f"Your pos: {self.hand_position:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 60))
         screen.blit(self.font.render(f"Attempt: {self.check_times}/{REPEAT_COUNT}", True, (0, 0, 0), (255, 255,255)), (20, 100))
 
-        if self.state == "waiting":
-            percent_text = f"Match: {similarity*100:.1f}%"
-            screen.blit(self.font.render("Checking...", True, (100, 100, 100), (255, 255, 255)), (250, 300))
-            screen.blit(self.font.render(percent_text, True, (0, 0, 0), (255, 255, 255)), (250, 340))
+    def draw_below_text(self, screen, text):
+        # 白いバーを画面下に描画
+        bar_rect = pygame.Rect(0, HEIGHT - BAR_HEIGHT, WIDTH, BAR_HEIGHT)
+        pygame.draw.rect(screen, (255, 255, 255), bar_rect)
 
-            # どの音を聞いているか表示
+        # テキストの描画
+        text_surf = self.font.render(text, True, (0, 0, 0))  # 黒文字
+        text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - BAR_HEIGHT // 2))
+        screen.blit(text_surf, text_rect)
+
+    def draw(self, screen):
+        screen.fill((0, 0, 255, 30))
+
+        hand_pos = self.frozen_hand_pos if self.state in ["waiting", "done"] else self.hand_position
+        similarity = self._calculate_similarity(hand_pos, self.target_pos)
+
+        self.draw_circle(screen, similarity)
+        self.draw_percentage(screen, similarity)
+        self.draw_current_status(screen)
+
+        if self.state == "waiting":
             if self.substate == "user":
-                label = "🔊 Your Sound"
+                label = "Your Sound"
             elif self.substate == "target":
-                label = "🎯 Target Sound"
+                label = "Target Sound"
             else:
                 label = ""
-            screen.blit(self.font.render(label, True, (0, 0, 100), (255, 255, 255)), (250, 380))
+            self.draw_below_text(screen, label)
 
         if self.state == "playing":
             countdown_text = f"Next check in: {self.remaining_time:.1f}s"
-            screen.blit(self.font.render(countdown_text, True, (0, 0, 0), (255, 255, 255)), (250, 300))
-
+            self.draw_below_text(screen, countdown_text)
         if self.state == "listening":
-            screen.blit(self.font.render("🎯 Listening to Target Sound...", True, (0, 0, 100), (255, 255, 255)), (200, 300))
-
+            self.draw_below_text(screen, "Listening to Target Sound...")
         if self.result == "success":
-            screen.blit(self.font.render("🎉 Success! Returning...", True, (0, 150, 0)), (200, 400))
+            self.draw_below_text(screen, "Success! Returning to Start Scene...")
         elif self.result == "fail":
-            screen.blit(self.font.render("❌ Failed. Returning...", True, (200, 0, 0)), (200, 400))
+            self.draw_below_text(screen, "Failed. Returning to Start Scene...")
