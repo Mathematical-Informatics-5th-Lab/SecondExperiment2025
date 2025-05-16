@@ -16,9 +16,10 @@ REPEAT_COUNT = Config.REPEAT_COUNT
 THRESHOLD = Config.THRESHOLD
 
 class PlayScene(BaseScene):
-    def __init__(self, switch_scene_callback):
+    def __init__(self, switch_scene_callback, attr_using):
         self.switch_scene = switch_scene_callback
         self.font = pygame.font.SysFont(None, 36)
+        self.attr_using = attr_using
 
         self.player = SoundGenerator.RandomSoundPlayer()
         self.reset_game()
