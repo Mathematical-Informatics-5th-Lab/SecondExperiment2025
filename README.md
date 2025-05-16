@@ -1,6 +1,26 @@
 # SecondExperiment2025
 2025年度の数理情報工学実験第二  
 
+## 実行手順
+1. 以下の「[leapcを使えるようにするsetup](#leapcを使えるようにするsetup)」を実行
+
+1. wsl or macに応じて以下を実行
+
+    - wslを使っている場合は、「[wslでusbを認識する方法](#wslでusbを認識する方法)」を実行
+
+    - macを使っている場合は、 `brew install portaudio` を実行
+
+1. poetryをセットアップ
+```
+poetry install --no-root
+```
+
+1. 以下で main を実行
+```
+poetry run python src/main.py
+```
+
+
 ## leapcを使えるようにするsetup
 poetryのversionが2以上であることを仮定します. (`poetry --version` で確認してください.)
 
