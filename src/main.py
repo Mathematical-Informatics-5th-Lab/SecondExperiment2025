@@ -10,6 +10,7 @@ def main():
 
     while not game_scene.should_quit():
         leap_data = leap_input.get_hand_position()
+        
         hand_pos = random.random()  # テスト用
         game_scene.update(hand_pos)
 
