@@ -51,7 +51,7 @@ class LeapInput:
 
     def get_hand_position(self):
         return self.leap_data
-"""
+
 def main():
     leap_input = LeapInput()
 
@@ -71,4 +71,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-"""
