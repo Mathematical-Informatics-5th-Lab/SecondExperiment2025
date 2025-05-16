@@ -6,8 +6,8 @@ from leapdata import LeapData
 class LeapInput:
     def __init__(self):
         self._start_listener()
-        self._latest_data = None  # ← 前回のデータ保持用
-        self.leap_data = None
+        self._latest_data = LeapData.empty()  # ← 前回のデータ保持用
+        self.leap_data = LeapData.empty()
 
     def _start_listener(self):
         def leap_thread():
@@ -56,7 +56,7 @@ class LeapInput:
 
 def main():
     leap_input = LeapInput()
-    #t = 0
+    t = 0
     try:
         while True:
             data = leap_input.get_hand_position()
@@ -80,8 +80,8 @@ def main():
                 print("-" * 50)
             """
             time.sleep(0.5)
-            #print(t)
-            #t += 1
+            print(t)
+            t += 1
     except KeyboardInterrupt:
         print("終了します")
 
