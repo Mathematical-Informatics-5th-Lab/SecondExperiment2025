@@ -23,10 +23,8 @@ class LeapInput:
                         # デバッグ出力（簡略版）
                         """
                         print("=" * 30)
-                        """
                         print(f"Palm (x, y, z): ({self.leap_data.palm_x:.1f}, "
                             f"{self.leap_data.palm_y:.1f}, {self.leap_data.palm_z:.1f})")
-                        """
                         print(f"Normal: ({self.leap_data.palm_normal_x:.2f}, "
                             f"{self.leap_data.palm_normal_y:.2f}, {self.leap_data.palm_normal_z:.2f})")
                         print(f"Grab: {self.leap_data.grab_strength:.2f}, Pinch: {self.leap_data.pinch_strength:.2f}")
@@ -58,17 +56,23 @@ class LeapInput:
 
 def main():
     leap_input = LeapInput()
-    t = 0
+    #t = 0
     try:
         while True:
             data = leap_input.get_hand_position()
+            """
             if data == None:
                 print("data is None")
             else:
                 print(data.finger_directions_to_parameter())
                 if(data.finger_directions_to_parameter() == None):
                     print("data.finger_directions_to_parameter() is None")
-            """
+                print(data.palm_normal_to_parameter())
+                if(data.palm_normal_to_parameter() == None):
+                    print("data.palm_normal_to_parameter() is None")
+                print(data.grab_strength_to_parameter())
+                if(data.grab_strength_to_parameter() == None):
+                    print("data.grab_strength_to_parameter() is None")
             if data:
                 print("== get_hand_position() の結果 ==")
                 print("Palm:", data.palm_x, data.palm_y, data.palm_z)
@@ -76,8 +80,8 @@ def main():
                 print("-" * 50)
             """
             time.sleep(0.5)
-            print(t)
-            t += 1
+            #print(t)
+            #t += 1
     except KeyboardInterrupt:
         print("終了します")
 
