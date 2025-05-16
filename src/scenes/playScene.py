@@ -19,9 +19,9 @@ class PlayScene(BaseScene):
     def __init__(self, switch_scene_callback):
         self.switch_scene = switch_scene_callback
         self.font = pygame.font.SysFont(None, 36)
-        self.sound_gen = SoundGenerator.RandomSoundGen()
-        self.sound_gen.set_duration(1.0 / FRAME_RATE)
-        pygame.mixer.pre_init(frequency=self.sound_gen.get_sample_rate(), size=-16, channels=2)
+
+        self.player = SoundGenerator.RandomSoundPlayer()
+        self.player.start(0.0)
         self.reset_game()
 
     def reset_game(self):
@@ -67,8 +67,7 @@ class PlayScene(BaseScene):
 
         if self.state == "playing":
             self.hand_position = min(max(hand_position, 0), 1)
-            sound = self.sound_gen.generate(param=hand_position)
-            sound.play()
+            self.player.update_param(self.hand_position)
 
             if now - self.last_check >= CHECK_INTERVAL:
                 self.state = "waiting"
