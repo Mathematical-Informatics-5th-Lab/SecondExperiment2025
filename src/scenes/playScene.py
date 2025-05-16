@@ -5,6 +5,7 @@ import time
 from .baseScene import BaseScene
 import SoundGenerator
 from config import Config
+from visualizer import HandVisualizer
 
 # 定数
 WIDTH = Config.WIDTH
@@ -25,6 +26,7 @@ class PlayScene(BaseScene):
 
         self.player = SoundGenerator.RandomSoundPlayer()
         self.reset_game()
+        self.visualizer = HandVisualizer()
 
     def reset_game(self):
         # TODO: 理想的なパラメータがあれば, その範囲になるように調整する必要あり
@@ -176,6 +178,8 @@ class PlayScene(BaseScene):
         self.draw_circle(screen, similarity)
         self.draw_percentage(screen, similarity)
         self.draw_current_status(screen)
+
+        self.visualizer.draw_hand(screen)
 
         if self.state == "waiting":
             if self.substate == "user":
