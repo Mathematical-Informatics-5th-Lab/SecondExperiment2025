@@ -12,7 +12,6 @@ def main():
         leap_data = leap_input.get_hand_position()
         hand_pos = random.random()  # テスト用
         game_scene.update(hand_pos)
-        time.sleep(0.1)
 
     game_scene.cleanup()
 
