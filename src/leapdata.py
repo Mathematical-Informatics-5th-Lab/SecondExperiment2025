@@ -11,6 +11,7 @@ class LeapData:
         self.finger_direction_x = []
         self.finger_direction_y = []
         self.finger_direction_z = []
+        self.fingers = fingers
 
         for digit in fingers:
             distal_bone = digit.bones[3]  # 3: Distal bone
