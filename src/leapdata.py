@@ -116,14 +116,14 @@ class LeapData:
         self.palm_normal のベクトルと 1/3 * [2, 2, 1] の内積を計算し、
         0以上1以下に正規化して返す関数
         """
-        if not self.palm_normal:
+        if not self.palm_normal_x:
             raise ValueError("self.palm_normal にデータがありません")
 
         # 基準ベクトルを定義
         reference_vector = [2 / 3, 2 / 3, 1 / 3]
 
         # 手のひらの法線ベクトルを取得
-        normal = self.palm_normal
+        normal = [self.palm_normal_x, self.palm_normal_y, self.palm_normal_z]
 
         # 内積を計算
         dot_product = sum(n * r for n, r in zip(normal, reference_vector))
@@ -147,5 +147,3 @@ class LeapData:
             x*=1/2
         return x
     
-    
-

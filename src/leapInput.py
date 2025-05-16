@@ -63,6 +63,8 @@ def main():
                 print("Palm:", data.palm_x, data.palm_y, data.palm_z)
                 print("Grab strength:", data.grab_strength)
                 print("-" * 50)
+                print(data.palm_normal_to_parameter())
+                print(data.grab_strength_to_parameter())
             time.sleep(0.5)
     except KeyboardInterrupt:
         print("終了します")
