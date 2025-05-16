@@ -20,8 +20,8 @@ class LeapInput:
 
                         
                         # デバッグ出力（簡略版）
-                        print("=" * 30)
-                        """
+                        """print("=" * 30)
+                        
                         print(f"Palm (x, y, z): ({self.leap_data.palm_x:.1f}, "
                             f"{self.leap_data.palm_y:.1f}, {self.leap_data.palm_z:.1f})")
                         print(f"Normal: ({self.leap_data.palm_normal_x:.2f}, "
@@ -31,9 +31,10 @@ class LeapInput:
                         print(f"IndexDir: ({self.leap_data.finger_direction_x[1]:.2f}, "
                             f"{self.leap_data.finger_direction_y[1]:.2f}, "
                             f"{self.leap_data.finger_direction_z[1]:.2f})")
-                        """
+                        
                         print(self.leap_data.finger_directions_to_parameter())
                         print("=" * 30)
+                        """
                         
 
 
@@ -68,5 +69,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-main()
