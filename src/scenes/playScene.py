@@ -156,13 +156,13 @@ class PlayScene(BaseScene):
         screen.blit(self.font.render(f"Your pos: {self.hand_position:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 60))
         screen.blit(self.font.render(f"Attempt: {self.check_times}/{REPEAT_COUNT}", True, (0, 0, 0), (255, 255,255)), (20, 100))
 
-    def draw_below_text(self, screen, text, font):
+    def draw_below_text(self, screen, text):
         # 白いバーを画面下に描画
         bar_rect = pygame.Rect(0, HEIGHT - BAR_HEIGHT, WIDTH, BAR_HEIGHT)
         pygame.draw.rect(screen, (255, 255, 255), bar_rect)
 
         # テキストの描画
-        text_surf = font.render(text, True, (0, 0, 0))  # 黒文字
+        text_surf = self.font.render(text, True, (0, 0, 0))  # 黒文字
         text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - BAR_HEIGHT // 2))
         screen.blit(text_surf, text_rect)
 
@@ -176,29 +176,21 @@ class PlayScene(BaseScene):
         self.draw_percentage(screen, similarity)
         self.draw_current_status(screen)
 
-        self.draw_below_text(screen, "test text", self.font)
-
         if self.state == "waiting":
-            percent_text = f"Match: {similarity*100:.1f}%"
-            screen.blit(self.font.render("Checking...", True, (100, 100, 100), (255, 255, 255)), (250, 300))
-            screen.blit(self.font.render(percent_text, True, (0, 0, 0), (255, 255, 255)), (250, 340))
-
-            # どの音を聞いているか表示
             if self.substate == "user":
-                label = "🔊 Your Sound"
+                label = "Your Sound"
             elif self.substate == "target":
-                label = "🎯 Target Sound"
+                label = "Target Sound"
             else:
                 label = ""
-            screen.blit(self.font.render(label, True, (0, 0, 100), (255, 255, 255)), (250, 380))
+            self.draw_below_text(screen, label)
 
         if self.state == "playing":
             countdown_text = f"Next check in: {self.remaining_time:.1f}s"
-            screen.blit(self.font.render(countdown_text, True, (0, 0, 0), (255, 255, 255)), (250, 300))
+            self.draw_below_text(screen, countdown_text)
         if self.state == "listening":
-            screen.blit(self.font.render("🎯 Listening to Target Sound...", True, (0, 0, 100), (255, 255, 255)), (200, 300))
-
+            self.draw_below_text(screen, "Listening to Target Sound...")
         if self.result == "success":
-            screen.blit(self.font.render("🎉 Success! Returning...", True, (0, 150, 0)), (200, 400))
+            self.draw_below_text(screen, "Success! Returning to Start Scene...")
         elif self.result == "fail":
-            screen.blit(self.font.render("❌ Failed. Returning...", True, (200, 0, 0)), (200, 400))
+            self.draw_below_text(screen, "Failed. Returning to Start Scene...")
