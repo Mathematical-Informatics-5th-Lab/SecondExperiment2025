@@ -16,6 +16,7 @@ cffi = ">=1.17.1,<2.0.0"
 opencv-python = ">=4.11.0.86,<5.0.0.0"
 leap = { path = "./leapc-python-bindings/leapc-python-api", develop = true }
 pygame = "^2.6.1"
+pyaudio = "^0.2.14"
 
 
 [build-system]
