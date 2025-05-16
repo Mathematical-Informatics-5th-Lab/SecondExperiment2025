@@ -3,44 +3,59 @@ import threading
 import time
 import leap
 import math
+import numpy as np
 
 class LeapData:
     def __init__(self, hand, fingers):
-        """
-        # 1. 各指の幅（tip.radius × 2）[15 ~ 25 mm 程度]
-        self.finger_widths = [finger.tip.radius * 2 for finger in fingers]
+        # 指の方向ベクトル（distal bone の方向）を指ごとに取得
+        self.finger_direction_x = []
+        self.finger_direction_y = []
+        self.finger_direction_z = []
+        self.fingers = fingers
 
-        # 2. 各指の方向ベクトル（軸ごとに分解）
-        self.finger_direction_x = [finger.direction.x for finger in fingers]
-        self.finger_direction_y = [finger.direction.y for finger in fingers]
-        self.finger_direction_z = [finger.direction.z for finger in fingers]
-        """
+        for digit in fingers:
+            distal_bone = digit.bones[3]  # 3: Distal bone
+            if distal_bone:
+                vec = [0, 0, 0]
+                vec[0] = distal_bone.next_joint.x - distal_bone.prev_joint.x
+                vec[1] = distal_bone.next_joint.y - distal_bone.prev_joint.y
+                vec[2] = distal_bone.next_joint.z - distal_bone.prev_joint.z
+                norm = np.linalg.norm([vec[0], vec[1], vec[2]])
+                if norm != 0:
+                    self.finger_direction_x.append(vec[0] / norm)
+                    self.finger_direction_y.append(vec[1] / norm)
+                    self.finger_direction_z.append(vec[2] / norm)
+                else:
+                    self.finger_direction_x.append(0.0)
+                    self.finger_direction_y.append(0.0)
+                    self.finger_direction_z.append(0.0)
+            else:
+                self.finger_direction_x.append(0.0)
+                self.finger_direction_y.append(0.0)
+                self.finger_direction_z.append(0.0)
 
-        # 3. 手のひらの法線ベクトル（軸ごとに）
+        
+        """
+        # 指の幅（distal bone の直径）
+        self.finger_widths = [finger.distal.Width for finger in fingers]
+        """
+        # 手のひらの法線ベクトル
         self.palm_normal_x = hand.palm.normal.x
         self.palm_normal_y = hand.palm.normal.y
         self.palm_normal_z = hand.palm.normal.z
 
-        """
-        # 4. 各指の先端位置（軸ごとに）
-        self.finger_tip_x = [finger.tip.position.x for finger in fingers]
-        self.finger_tip_y = [finger.tip.position.y for finger in fingers]
-        self.finger_tip_z = [finger.tip.position.z for finger in fingers]
-        """
+        # 開き具合
+        self.grab_strength = hand.grab_strength
+        self.pinch_strength = hand.pinch_strength
 
-        # 5. 開き具合
-        self.grab_strength = hand.grab_strength  # 0.0 ~ 1.0
-        self.pinch_strength = hand.pinch_strength  # 0.0 ~ 1.0
-
-        # 6. 左右判定
+        # 左右判定
         self.is_left = hand.type == leap.HandType.Left
         self.is_right = hand.type == leap.HandType.Right
 
-        # 7. 手の位置（軸ごとに）
+        # 手の位置
         self.palm_x = hand.palm.position.x
         self.palm_y = hand.palm.position.y
         self.palm_z = hand.palm.position.z
-
 
     def variable_range(self, variable_name: str):
         # 変数名に応じた値域を返す
@@ -62,7 +77,7 @@ class LeapData:
             "palm_z": [-200, 200],
         }
         return ranges.get(variable_name, None)
-        # 指定された変数名が存在しない場合は None を返す
+
         
 
     def normalize_values(self, value, value_range):
@@ -80,14 +95,14 @@ class LeapData:
         self.finger_directions[1] のベクトルと 1/sqrt(3) * [1, 1, -1] の内積を計算し、
         0以上1以下に正規化して返す関数
         """
-        if len(self.finger_directions) <= 1:
+        if len(self.finger_direction_x) <= 1:
             raise ValueError("self.finger_directions に十分なデータがありません")
 
         # 基準ベクトルを定義
         reference_vector = [1 / math.sqrt(3), 1 / math.sqrt(3), -1 / math.sqrt(3)]
 
         # 指定された指の方向ベクトルを取得
-        direction = self.finger_directions[1]
+        direction = [self.finger_direction_x[1], self.finger_direction_y[1], self.finger_direction_z[1]]
 
         # 内積を計算
         dot_product = sum(d * r for d, r in zip(direction, reference_vector))
