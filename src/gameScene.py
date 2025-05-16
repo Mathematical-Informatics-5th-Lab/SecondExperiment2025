@@ -2,6 +2,7 @@
 import pygame
 from scenes.startScene import StartScene
 from scenes.playScene import PlayScene
+import SoundGenerator
 
 class GameScene:
     def __init__(self):
@@ -11,14 +12,13 @@ class GameScene:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        self.scenes = {
-            "start": StartScene(self.switch_scene),
-            "play": PlayScene()
-        }
-        self.current_scene = self.scenes["start"]
+        self.current_scene = StartScene(self.switch_scene)
 
     def switch_scene(self, scene_name):
-        self.current_scene = self.scenes[scene_name]
+        if scene_name == "start":
+            self.current_scene = StartScene(self.switch_scene)
+        elif scene_name == "play":
+            self.current_scene = PlayScene(self.switch_scene)
 
     def should_quit(self):
         return not self.running
@@ -33,7 +33,7 @@ class GameScene:
         self.current_scene.update(hand_position)
         self.current_scene.draw(self.screen)
         pygame.display.flip()
-        self.clock.tick(60)
+        self.clock.tick(10)
 
     def cleanup(self):
         pygame.quit()
