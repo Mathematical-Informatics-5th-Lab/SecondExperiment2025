@@ -19,19 +19,23 @@ class LeapInput:
                         self.leap_data = LeapData(hand, fingers)
 
                         
-                        # デバッグ出力
-                        print("Palm position (x, y, z):", 
-                              self.leap_data.palm_x, 
-                              self.leap_data.palm_y, "\n",
-                              self.leap_data.palm_z)
-                        print("Palm normal (x, y, z):", 
-                              self.leap_data.palm_normal_x, 
-                              self.leap_data.palm_normal_y, 
-                              self.leap_data.palm_normal_z)
-                        print("is_left:", self.leap_data.is_left)
-                        print("Grab strength:", self.leap_data.grab_strength)
-                        print("-" * 40)
+                        # デバッグ出力（簡略版）
+                        print("=" * 30)
+                        """
+                        print(f"Palm (x, y, z): ({self.leap_data.palm_x:.1f}, "
+                            f"{self.leap_data.palm_y:.1f}, {self.leap_data.palm_z:.1f})")
+                        print(f"Normal: ({self.leap_data.palm_normal_x:.2f}, "
+                            f"{self.leap_data.palm_normal_y:.2f}, {self.leap_data.palm_normal_z:.2f})")
+                        print(f"Grab: {self.leap_data.grab_strength:.2f}, Pinch: {self.leap_data.pinch_strength:.2f}")
+                    
+                        print(f"IndexDir: ({self.leap_data.finger_direction_x[1]:.2f}, "
+                            f"{self.leap_data.finger_direction_y[1]:.2f}, "
+                            f"{self.leap_data.finger_direction_z[1]:.2f})")
+                        """
+                        print(self.leap_data.finger_directions_to_parameter())
+                        print("=" * 30)
                         
+
 
             listener = MyListener()
             connection = leap.Connection()
@@ -64,3 +68,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+main()
