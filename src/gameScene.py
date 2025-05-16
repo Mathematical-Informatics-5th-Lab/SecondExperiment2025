@@ -16,6 +16,7 @@ class GameScene:
         pygame.display.set_caption("Blur Game")
         self.clock = pygame.time.Clock()
         self.running = True
+
         self.current_scene = StartScene(self.switch_scene)
 
     def switch_scene(self, scene_name):

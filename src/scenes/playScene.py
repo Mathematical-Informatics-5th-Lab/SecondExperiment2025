@@ -32,6 +32,31 @@ class PlayScene(BaseScene):
         self.state = "playing"  # "playing" / "waiting" / "done"
         self.wait_start_time = None
         self.result = None
+    
+    def _calculate_similarity(self, hand_pos, target_pos):
+        """
+        手の位置とターゲット位置の類似度を計算するメソッド
+        Parameters
+        ----------
+        hand_pos : float
+            手の位置
+        target_pos : float
+            ターゲット位置
+        Returns
+        -------
+        float
+            類似度 (0.0~1.0)
+        """
+        diff = abs(hand_pos - target_pos)
+        if diff < THRESHOLD:
+            return 1.0
+
+        diff = min(abs(hand_pos - target_pos - THRESHOLD), abs(hand_pos - target_pos + THRESHOLD))
+        if target_pos > 0.5:
+            denominator = target_pos - THRESHOLD
+        else:
+            denominator = 1 - (target_pos + THRESHOLD)
+        return 1 - diff / denominator
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
@@ -73,18 +98,32 @@ class PlayScene(BaseScene):
                 self.switch_scene("start")
 
     def draw(self, screen):
-        screen.fill((255, 255, 255))
+        screen.fill((0, 0, 255, 30))
 
-        # ブラー効果（プレイ時のみ手に追従）
-        blur_strength = self.frozen_hand_pos if self.state in ("waiting", "done") else self.hand_position
-        max_radius = max(WIDTH, HEIGHT)
-        steps = 50
+        hand_pos = self.frozen_hand_pos if self.state in ["waiting", "done"] else self.hand_position
+        similarity = self._calculate_similarity(hand_pos, self.target_pos)
+        min_radius = min(WIDTH, HEIGHT)  * 0.01
+        radius_similarity = min(WIDTH, HEIGHT) * 0.3
+        radius_t = max(WIDTH, HEIGHT)*0.3
+        steps = 80  # より滑らかに
+
         for i in range(steps):
-            alpha = int(255 * blur_strength * (1 - i / steps))
-            radius = int(max_radius * (i + 1) / steps)
+            t = i / steps
+            radius = int(min_radius + radius_similarity * (1- similarity) + radius_t * (1 - t))  # 中央が濃くなるように調整
+
+            # alpha を外側が強くなるように調整（指数カーブ）
+            alpha = int(255 * t**2)  # 外が濃くなる
+            color = (255, 255, 255, alpha)
+
             surf = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-            pygame.draw.circle(surf, (0, 0, 0, alpha), (WIDTH // 2, HEIGHT // 2), radius)
+            pygame.draw.circle(surf, color, (WIDTH // 2, HEIGHT // 2), radius)
             screen.blit(surf, (0, 0))
+
+        # 中央にパーセンテージ表示
+        font = pygame.font.SysFont(None, 100)
+        text = font.render(f"{int(similarity * 100)}%", True, (0, 0, 0))
+        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        screen.blit(text, text_rect)
 
         # UI表示
         screen.blit(self.font.render(f"Target: {self.target_pos:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 20))
@@ -92,9 +131,7 @@ class PlayScene(BaseScene):
         screen.blit(self.font.render(f"Attempt: {self.check_times}/{REPEAT_COUNT}", True, (0, 0, 0), (255, 255,255)), (20, 100))
 
         if self.state == "waiting":
-            diff = abs(self.frozen_hand_pos - self.target_pos)
-            similarity = max(0.0, 1.0 - diff / 1.0) * 100
-            percent_text = f"Match: {similarity:.1f}%"
+            percent_text = f"Match: {similarity*100:.1f}%"
             screen.blit(self.font.render("Checking...", True, (100, 100, 100), (255, 255, 255)), (250, 300))
             screen.blit(self.font.render(percent_text, True, (0, 0, 0), (255, 255, 255)), (250, 340))
 
