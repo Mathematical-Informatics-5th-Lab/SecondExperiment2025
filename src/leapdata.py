@@ -57,6 +57,31 @@ class LeapData:
         self.palm_y = hand.palm.position.y
         self.palm_z = hand.palm.position.z
 
+    @classmethod
+    def empty(cls):
+        obj = cls.__new__(cls)  # __init__ を通さずにインスタンスを生成
+
+        obj.finger_direction_x = None
+        obj.finger_direction_y = None
+        obj.finger_direction_z = None
+        obj.fingers = None
+
+        obj.palm_normal_x = None
+        obj.palm_normal_y = None
+        obj.palm_normal_z = None
+
+        obj.grab_strength = None
+        obj.pinch_strength = None
+
+        obj.is_left = None
+        obj.is_right = None
+
+        obj.palm_x = None
+        obj.palm_y = None
+        obj.palm_z = None
+
+        return obj
+
     def variable_range(self, variable_name: str):
         # 変数名に応じた値域を返す
         ranges = {
