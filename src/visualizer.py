@@ -12,6 +12,20 @@ class HandVisualizer:
         self.leap_input = LeapInput()
         self.hands_colour = (255, 255, 255)
         self.background_colour = (0, 0, 0)
+        # 画面の中心座標を計算
+        self.screen_center_x = self.screen.get_width() // 2
+        self.screen_center_y = self.screen.get_height() // 2
+
+    def transform_coordinates(self, x, z):
+        """Leap Motionの座標をPygameの座標系に変換"""
+        # x座標はそのまま、z座標はy座標として使用
+        if x is None or z is None:
+            return None
+        # スケーリング係数（必要に応じて調整）
+        scale = 1.0
+        screen_x = self.screen_center_x + x * scale
+        screen_y = self.screen_center_y + z * scale
+        return (screen_x, screen_y)
 
     def is_valid_position(self, pos):
         if pos is None:
@@ -28,20 +42,32 @@ class HandVisualizer:
             return False
 
     def draw_hand(self):
-        hand = self.leap_input.get_hand_data()
-        if not hand:
+        leap_data = self.leap_input.get_hand_position()
+        if not leap_data or leap_data.palm_x is None or leap_data.palm_z is None:
             return
 
         # 手のひらの位置を描画
-        palm_pos = self.leap_input.get_joint_position(hand.palm)
+        palm_pos = self.transform_coordinates(leap_data.palm_x, leap_data.palm_z)
         if self.is_valid_position(palm_pos):
             pygame.draw.circle(self.screen, self.hands_colour, palm_pos, 5)
 
+        def get_joint_position(joint):
+            if joint is None or joint.x is None or joint.z is None:
+                return None
+            return self.transform_coordinates(joint.x, joint.z)
+
         # 各指の骨を描画
-        for digit in hand.digits:
+        for digit in leap_data.fingers:
+            if digit is None:
+                continue
             for bone in digit.bones:
-                start_pos = self.leap_input.get_joint_position(bone.prev_joint)
-                end_pos = self.leap_input.get_joint_position(bone.next_joint)
+                if bone is None or bone.prev_joint is None or bone.next_joint is None:
+                    continue
+                start_pos = get_joint_position(bone.prev_joint)
+                end_pos = get_joint_position(bone.next_joint)
+
+                if start_pos is None or end_pos is None:
+                    continue
 
                 if self.is_valid_position(start_pos) and self.is_valid_position(
                     end_pos
