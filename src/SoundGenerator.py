@@ -431,6 +431,16 @@ class RandomSoundPlayer:
         """
         return self.sound_gen.sound_name, self.param_name
 
+    def get_param_value(self) -> float:
+        """パラメータの値を取得
+
+        Returns
+        -------
+        float
+            パラメータの値 (0.0~1.0)
+        """
+        return self.player.current_params[self.param_name]
+
 
 if __name__ == "__main__":
     # ランダムな音源とパラメータでプレイヤーを作成
@@ -447,6 +457,7 @@ if __name__ == "__main__":
     try:
         # パラメータを徐々に変更
         for i in range(101):
+            print(player.get_param_value())  # 現在のパラメータの値
             player.update_param(i / 100.0)  # 0.0~1.0の範囲でパラメータを変更
             pygame.time.delay(50)  # 50ミリ秒待機
     except KeyboardInterrupt:
