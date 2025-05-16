@@ -36,6 +36,8 @@ class PlayScene(BaseScene):
         self.substate = "target"  # "target" → "done"
         self.wait_start_time = None
 
+        self.remaining_time = CHECK_INTERVAL
+
         self.player.start(self.target_pos)
     
     def _calculate_similarity(self, hand_pos, target_pos):
@@ -88,6 +90,9 @@ class PlayScene(BaseScene):
                 self.check_times += 1
                 self.substate = "user"
                 self.player.update_param(self.frozen_hand_pos)  # 自分の音を固定
+
+            self.remaining_time = max(0.0, CHECK_INTERVAL - (now - self.last_check))
+
 
         elif self.state == "waiting":
             elapsed = now - self.wait_start_time
@@ -165,6 +170,10 @@ class PlayScene(BaseScene):
             else:
                 label = ""
             screen.blit(self.font.render(label, True, (0, 0, 100), (255, 255, 255)), (250, 380))
+
+        if self.state == "playing":
+            countdown_text = f"Next check in: {self.remaining_time:.1f}s"
+            screen.blit(self.font.render(countdown_text, True, (0, 0, 0), (255, 255, 255)), (250, 300))
 
         if self.state == "listening":
             screen.blit(self.font.render("🎯 Listening to Target Sound...", True, (0, 0, 100), (255, 255, 255)), (200, 300))
