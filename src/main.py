@@ -9,10 +9,17 @@ def main():
     game_scene = GameScene()
 
     while not game_scene.should_quit():
-        leap_data = leap_input.get_hand_position()
+        leap_data, is_changed = leap_input.get_hand_position()
+        if is_changed:
+            game_scene.switch_scene("start")
+            break
+
+    while not game_scene.should_quit():
+        leap_data, is_changed = leap_input.get_hand_position()
+        if not is_changed:
+            continue
         
-        hand_pos = random.random()  # テスト用
-        game_scene.update(hand_pos)
+        game_scene.update(leap_data)
 
     game_scene.cleanup()
 
