@@ -9,8 +9,8 @@ def main():
     game_scene = GameScene()
 
     while not game_scene.should_quit():
-        leap_data = leap_input.get_hand_position()
-        if leap_data is None:
+        leap_data, is_changed = leap_input.get_hand_position()
+        if not is_changed:
             continue
         
         game_scene.update(leap_data)
