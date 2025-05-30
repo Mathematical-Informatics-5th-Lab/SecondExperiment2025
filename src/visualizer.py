@@ -45,7 +45,7 @@ class HandVisualizer:
             return False
 
     def draw_hand(self, screen):
-        leap_data = self.leap_input.get_hand_position()
+        leap_data, _ = self.leap_input.get_hand_position()
         if not leap_data or leap_data.palm_x is None or leap_data.palm_z is None:
             return
 

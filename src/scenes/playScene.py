@@ -176,7 +176,7 @@ class PlayScene(BaseScene):
         similarity = self._calculate_similarity(hand_pos, self.target_pos)
 
         self.draw_circle(screen, similarity)
-        self.draw_percentage(screen, similarity)
+        # self.draw_percentage(screen, similarity)
         self.draw_current_status(screen)
 
         self.visualizer.draw_hand(screen)
