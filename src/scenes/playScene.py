@@ -38,7 +38,6 @@ class PlayScene(BaseScene):
         self.state = "listening"  # 最初は正解音提示フェーズ
         self.listen_start_time = time.time()
         self.result = None
-        self.substate = "target"  # "target" → "done"
         self.wait_start_time = None
 
         self.remaining_time = CHECK_INTERVAL
@@ -93,7 +92,6 @@ class PlayScene(BaseScene):
                 self.wait_start_time = now
                 self.frozen_hand_pos = self.hand_position
                 self.check_times += 1
-                self.substate = "user"
                 self.player.update_param(self.frozen_hand_pos)  # 自分の音を固定
 
             self.remaining_time = max(0.0, CHECK_INTERVAL - (now - self.last_check))
@@ -101,15 +99,7 @@ class PlayScene(BaseScene):
 
         elif self.state == "waiting":
             elapsed = now - self.wait_start_time
-
-            if self.substate == "user" and elapsed >= 3.0:
-                self.substate = "target"
-                self.wait_start_time = now  # 再スタート
-                self.player.stop()
-                # time.sleep(0.1)  # 音を止める
-                self.player.start(self.target_pos)
-
-            elif self.substate == "target" and elapsed >= 3.0:
+            if elapsed >= WAIT_TIME:
                 diff = abs(self.frozen_hand_pos - self.target_pos)
                 self.last_check = now  # 次のチェックの基準を更新
 
@@ -176,18 +166,13 @@ class PlayScene(BaseScene):
         similarity = self._calculate_similarity(hand_pos, self.target_pos)
 
         self.draw_circle(screen, similarity)
-        self.draw_percentage(screen, similarity)
         self.draw_current_status(screen)
 
         self.visualizer.draw_hand(screen)
 
         if self.state == "waiting":
-            if self.substate == "user":
-                label = "Your Sound"
-            elif self.substate == "target":
-                label = "Target Sound"
-            else:
-                label = ""
+            label = "Target Sound"
+            self.draw_percentage(screen, similarity)
             self.draw_below_text(screen, label)
 
         if self.state == "playing":

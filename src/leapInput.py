@@ -8,6 +8,7 @@ class LeapInput:
         self._start_listener()
         self._latest_data = LeapData.empty()  # ← 前回のデータ保持用
         self.leap_data = LeapData.empty()
+        self.is_changed = False
 
     def _start_listener(self):
         def leap_thread():
@@ -19,26 +20,7 @@ class LeapInput:
                         data = LeapData(hand, fingers)
                         self.leap_data = data
                         self._latest_data = data  # ← 最新値を保持
-                        
-                        # デバッグ出力（簡略版）
-                        """
-                        print("=" * 30)
-                        print(f"Palm (x, y, z): ({self.leap_data.palm_x:.1f}, "
-                            f"{self.leap_data.palm_y:.1f}, {self.leap_data.palm_z:.1f})")
-                        print(f"Normal: ({self.leap_data.palm_normal_x:.2f}, "
-                            f"{self.leap_data.palm_normal_y:.2f}, {self.leap_data.palm_normal_z:.2f})")
-                        print(f"Grab: {self.leap_data.grab_strength:.2f}, Pinch: {self.leap_data.pinch_strength:.2f}")
-                    
-                        print(f"IndexDir: ({self.leap_data.finger_direction_x[1]:.2f}, "
-                            f"{self.leap_data.finger_direction_y[1]:.2f}, "
-                            f"{self.leap_data.finger_direction_z[1]:.2f})")
-                        
-                        print(self.leap_data.finger_directions_to_parameter())
-                        print("=" * 30)
-                        """
-                        
-                        
-
+                        self.is_changed = True
 
             listener = MyListener()
             connection = leap.Connection()
@@ -52,7 +34,7 @@ class LeapInput:
         thread.start()
 
     def get_hand_position(self):
-        return self._latest_data
+        return self._latest_data, self.is_changed
 
 def main():
     leap_input = LeapInput()
@@ -60,25 +42,6 @@ def main():
     try:
         while True:
             data = leap_input.get_hand_position()
-            """
-            if data == None:
-                print("data is None")
-            else:
-                print(data.finger_directions_to_parameter())
-                if(data.finger_directions_to_parameter() == None):
-                    print("data.finger_directions_to_parameter() is None")
-                print(data.palm_normal_to_parameter())
-                if(data.palm_normal_to_parameter() == None):
-                    print("data.palm_normal_to_parameter() is None")
-                print(data.grab_strength_to_parameter())
-                if(data.grab_strength_to_parameter() == None):
-                    print("data.grab_strength_to_parameter() is None")
-            if data:
-                print("== get_hand_position() の結果 ==")
-                print("Palm:", data.palm_x, data.palm_y, data.palm_z)
-                print("Grab strength:", data.grab_strength)
-                print("-" * 50)
-            """
             time.sleep(0.5)
             print(t)
             t += 1

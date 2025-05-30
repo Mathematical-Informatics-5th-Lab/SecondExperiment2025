@@ -6,6 +6,8 @@ import pygame
 from config import Config
 from scenes.playScene import PlayScene
 from scenes.startScene import StartScene
+from scenes.loadScene import LoadScene
+from scenes.practiceScene import PracticeScene
 
 # 定数
 WIDTH = Config.WIDTH
@@ -20,13 +22,18 @@ class GameScene:
         self.running = True
         self.attr_using = random.choice(["finger", "palm", "grab"])
 
-        self.current_scene = StartScene(self.switch_scene)
+        self.current_scene = LoadScene(self.switch_scene)
+        self.current_scene.draw(self.screen)
+        pygame.display.flip()
+        self.clock.tick(FRAME_RATE)
 
     def switch_scene(self, scene_name):
         if scene_name == "start":
             self.current_scene = StartScene(self.switch_scene)
         elif scene_name == "play":
             self.current_scene = PlayScene(self.switch_scene, self.attr_using)
+        elif scene_name == "practice":
+            self.current_scene = PracticeScene(self.switch_scene, self.attr_using)  # 追加
 
     def should_quit(self):
         return not self.running
