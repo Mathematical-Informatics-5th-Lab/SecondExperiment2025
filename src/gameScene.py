@@ -28,6 +28,7 @@ class GameScene:
         self.clock.tick(FRAME_RATE)
 
     def switch_scene(self, scene_name):
+        self.attr_using = random.choice(["finger", "palm", "grab"])
         if scene_name == "start":
             self.current_scene = StartScene(self.switch_scene)
         elif scene_name == "play":

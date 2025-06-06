@@ -92,7 +92,7 @@ class PlayScene(BaseScene):
                 self.wait_start_time = now
                 self.frozen_hand_pos = self.hand_position
                 self.check_times += 1
-                self.player.update_param(self.frozen_hand_pos)  # 自分の音を固定
+                self.player.update_param(self.target_pos)  # 自分の音を固定
 
             self.remaining_time = max(0.0, CHECK_INTERVAL - (now - self.last_check))
 
@@ -143,11 +143,19 @@ class PlayScene(BaseScene):
         text = font.render(f"{int(similarity * 100)}%", True, (0, 0, 0))
         text_rect = text.get_rect(center=(WIDTH // 2, MAIN_HEIGHT // 2))
         screen.blit(text, text_rect)
+    
+    def draw_seconds(self, screen, seconds):
+        # 中央に秒数表示
+        font = pygame.font.SysFont(None, 100)
+        text = font.render(f"{seconds}s", True, (100, 100, 100))
+        text_rect = text.get_rect(center=(WIDTH // 2, MAIN_HEIGHT // 2))
+        screen.blit(text, text_rect)
 
     def draw_current_status(self, screen):
-        screen.blit(self.font.render(f"Target: {self.target_pos:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 20))
-        screen.blit(self.font.render(f"Your pos: {self.hand_position:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 60))
-        screen.blit(self.font.render(f"Attempt: {self.check_times}/{REPEAT_COUNT}", True, (0, 0, 0), (255, 255,255)), (20, 100))
+        font = pygame.font.SysFont(None, 150)
+        # screen.blit(self.font.render(f"Target: {self.target_pos:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 20))
+        # screen.blit(self.font.render(f"Your pos: {self.hand_position:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 60))
+        screen.blit(font.render(f"{self.check_times}/{REPEAT_COUNT}", True, (0, 0, 0), (255, 255,255)), (20, 20))
 
     def draw_below_text(self, screen, text):
         # 白いバーを画面下に描画
@@ -160,7 +168,10 @@ class PlayScene(BaseScene):
         screen.blit(text_surf, text_rect)
 
     def draw(self, screen):
-        screen.fill((0, 0, 255, 30))
+        if self.state == "playing":
+            screen.fill((0, 0, 255, 30))
+        else:
+            screen.fill((255, 0, 0, 30))
 
         hand_pos = self.frozen_hand_pos if self.state in ["waiting", "done"] else self.hand_position
         similarity = self._calculate_similarity(hand_pos, self.target_pos)
@@ -176,8 +187,9 @@ class PlayScene(BaseScene):
             self.draw_below_text(screen, label)
 
         if self.state == "playing":
-            countdown_text = f"Next check in: {self.remaining_time:.1f}s"
+            countdown_text = f"{int(self.remaining_time+1)} s"
             self.draw_below_text(screen, countdown_text)
+            self.draw_seconds(screen, int(self.remaining_time+1))
         if self.state == "listening":
             self.draw_below_text(screen, "Listening to Target Sound...")
         if self.result == "success":
