@@ -169,7 +169,5 @@ class LeapData:
 
         # y = -4x(x-1) の計算
         x = self.grab_strength
-        if self.is_left:
-            x*=1/2
         return x
     
