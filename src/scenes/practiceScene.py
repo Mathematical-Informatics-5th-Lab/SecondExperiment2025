@@ -58,6 +58,20 @@ class PracticeScene(BaseScene):
         # パラメータ表示
         text = self.font.render(f"Hand Pos: {self.hand_position:.2f}", True, (255, 255, 255))
         screen.blit(text, (20, 20))
+        
+        # 音源情報を表示（1総通の電報形式対応）
+        try:
+            sound_name, param_name = self.player.get_sound_info()
+            if sound_name == "TelegraphGen":
+                sound_display = "Telegraph (電報)"
+            else:
+                sound_display = sound_name
+            sound_text = self.font.render(f"Sound: {sound_display}", True, (255, 255, 255))
+            screen.blit(sound_text, (20, 60))
+            param_text = self.font.render(f"Param: {param_name}", True, (255, 255, 255))
+            screen.blit(param_text, (20, 90))
+        except:
+            pass  # エラーが発生した場合は表示しない
 
         # 手の視覚化（任意）
         self.visualizer.draw_hand(screen)

@@ -245,6 +245,121 @@ class SineGen(SoundGen):
         return wave * self.amplitude
 
 
+class TelegraphGen(SoundGen):
+    """
+    電報形式（モールス信号）音を生成するクラス
+    1総通の電報形式に対応
+    
+    Attributes
+    ----------
+    duration : float
+        音の長さ(秒)
+    rate : int
+        サンプリングレート
+    param_names : list[str]
+        音のパラメータの名前
+    params : dict[str, float]
+        音のパラメータの値
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.param_names = ["speed", "frequency", "character"]
+        self.params = {
+            "speed": 0.5,      # モールス信号の速度 (0-1: 5-25 WPM)
+            "frequency": 0.5,   # 信号の周波数 (0-1: 400-1200 Hz)
+            "character": 0.5,   # 送信する文字の選択 (0-1)
+        }
+        
+        # モールス符号表 (一部)
+        self.morse_code = {
+            'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',   'E': '.',
+            'F': '..-.',  'G': '--.',   'H': '....',  'I': '..',    'J': '.---',
+            'K': '-.-',   'L': '.-..',  'M': '--',    'N': '-.',    'O': '---',
+            'P': '.--.',  'Q': '--.-',  'R': '.-.',   'S': '...',   'T': '-',
+            'U': '..-',   'V': '...-',  'W': '.--',   'X': '-..-',  'Y': '-.--',
+            'Z': '--..',  '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+            '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+            '0': '-----'
+        }
+        
+        self.characters = list(self.morse_code.keys())
+        self.current_pattern = '...'  # デフォルトは 'S'
+        self.pattern_position = 0
+        self.element_start_time = 0
+        self.in_element = False
+        self.element_duration = 0
+        self.silence_duration = 0
+
+    def reset_phase(self, initial_params: dict[str, float] | None = None) -> None:
+        """位相をリセット"""
+        super().reset_phase()
+        self.pattern_position = 0
+        self.element_start_time = 0
+        self.in_element = False
+        if initial_params is not None and "character" in initial_params:
+            char_index = int(initial_params["character"] * (len(self.characters) - 1))
+            char = self.characters[char_index]
+            self.current_pattern = self.morse_code[char]
+
+    def generate_buffer(self, params: dict[str, float]) -> np.ndarray:
+        # パラメータを更新
+        for key in params:
+            if key in self.params:
+                self.params[key] = params[key]
+
+        # パラメータを計算
+        wpm = 5 + 20 * self.params["speed"]  # 5-25 WPM
+        frequency = 400 + 800 * self.params["frequency"]  # 400-1200 Hz
+        
+        # 文字選択
+        char_index = int(self.params["character"] * (len(self.characters) - 1))
+        char = self.characters[char_index]
+        self.current_pattern = self.morse_code[char]
+        
+        # タイミング計算 (Paris標準: 1単位 = 1.2/WPM 秒)
+        unit_duration = 1.2 / wpm  # 基本単位時間（秒）
+        dot_duration = unit_duration
+        dash_duration = 3 * unit_duration
+        element_gap = unit_duration  # 符号要素間の間隔
+        char_gap = 3 * unit_duration  # 文字間の間隔
+        
+        # バッファを初期化
+        wave = np.zeros(self.buffer_size)
+        samples_per_second = self.rate
+        
+        for i in range(self.buffer_size):
+            current_time = i / samples_per_second
+            
+            # パターン内での位置を計算
+            pattern_time = current_time % (len(self.current_pattern) * 4 * unit_duration + char_gap)
+            
+            signal_active = False
+            
+            # 現在の符号要素を決定
+            element_index = 0
+            accumulated_time = 0
+            
+            for j, element in enumerate(self.current_pattern):
+                element_dur = dot_duration if element == '.' else dash_duration
+                
+                if pattern_time >= accumulated_time and pattern_time < accumulated_time + element_dur:
+                    signal_active = True
+                    break
+                accumulated_time += element_dur + element_gap
+                
+                if accumulated_time > pattern_time:
+                    break
+            
+            # 信号生成
+            if signal_active:
+                wave[i] = np.sin(2 * np.pi * frequency * current_time) * self.amplitude
+            else:
+                wave[i] = 0
+
+        return wave
+
+
 class RandomSoundGen:
     """
     ランダムな音を生成するクラス
@@ -262,12 +377,15 @@ class RandomSoundGen:
         sound_gen_list = [
             "PulseGen",
             "SineGen",
+            "TelegraphGen",
         ]
         self.sound_name = random.choice(sound_gen_list)
         if self.sound_name == "PulseGen":
             self.sound_gen = PulseGen()
         elif self.sound_name == "SineGen":
             self.sound_gen = SineGen()
+        elif self.sound_name == "TelegraphGen":
+            self.sound_gen = TelegraphGen()
         else:
             raise ValueError("Invalid sound generator name")
         self.param_name = random.choice(self.sound_gen.param_names)

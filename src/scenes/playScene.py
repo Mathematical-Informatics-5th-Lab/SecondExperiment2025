@@ -148,6 +148,18 @@ class PlayScene(BaseScene):
         screen.blit(self.font.render(f"Target: {self.target_pos:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 20))
         screen.blit(self.font.render(f"Your pos: {self.hand_position:.2f}", True, (0, 0, 0), (255, 255,255)), (20, 60))
         screen.blit(self.font.render(f"Attempt: {self.check_times}/{REPEAT_COUNT}", True, (0, 0, 0), (255, 255,255)), (20, 100))
+        
+        # 音源情報を表示（1総通の電報形式対応）
+        try:
+            sound_name, param_name = self.player.get_sound_info()
+            if sound_name == "TelegraphGen":
+                sound_display = "Telegraph (電報)"
+            else:
+                sound_display = sound_name
+            screen.blit(self.font.render(f"Sound: {sound_display}", True, (0, 0, 0), (255, 255,255)), (20, 140))
+            screen.blit(self.font.render(f"Param: {param_name}", True, (0, 0, 0), (255, 255,255)), (20, 170))
+        except:
+            pass  # エラーが発生した場合は表示しない
 
     def draw_below_text(self, screen, text):
         # 白いバーを画面下に描画
